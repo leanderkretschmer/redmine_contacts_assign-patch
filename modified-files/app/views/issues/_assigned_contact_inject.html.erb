@@ -1,5 +1,14 @@
 <%# MODIFIED FILE: Injects contacts into the standard assigned_to dropdown and maps selection %>
-<% contacts = Contact.visible.order(:last_name, :first_name).pluck(:id, :first_name, :last_name, :company) %>
+<% project_id = @project.try(:id)
+   contacts = if project_id
+     Contact.visible
+            .joins("INNER JOIN contacts_projects cp ON cp.contact_id = contacts.id")
+            .where("cp.project_id = ?", project_id)
+            .order(:last_name, :first_name)
+            .pluck(:id, :first_name, :last_name, :company)
+   else
+     Contact.visible.order(:last_name, :first_name).pluck(:id, :first_name, :last_name, :company)
+   end %>
 <%= hidden_field_tag :assigned_is_contact, '0' %>
 <%= hidden_field_tag :assigned_contact_id, '' %>
 <script>
@@ -24,17 +33,28 @@
       if (isContact) {
         hiddenFlag.value = '1';
         hiddenId.value = val.substring(2);
-        // prevent invalid principal id submit
-        // keep UI selection, but ensure server gets empty assigned_to_id
-        var dummy = document.createElement('option');
-        dummy.value = '';
-        dummy.textContent = '';
-        select.appendChild(dummy);
-        select.value = '';
       } else {
         hiddenFlag.value = '0';
         hiddenId.value = '';
       }
     });
+
+    var form = select.closest('form');
+    if (form) {
+      form.addEventListener('submit', function() {
+        var val = select.value || '';
+        if (val.startsWith('c_')) {
+          var hiddenFlag = document.querySelector('input[name="assigned_is_contact"]');
+          var hiddenId = document.querySelector('input[name="assigned_contact_id"]');
+          hiddenFlag.value = '1';
+          hiddenId.value = val.substring(2);
+          var dummy = document.createElement('option');
+          dummy.value = '';
+          dummy.textContent = '';
+          select.appendChild(dummy);
+          select.value = '';
+        }
+      });
+    }
   })();
 </script>
