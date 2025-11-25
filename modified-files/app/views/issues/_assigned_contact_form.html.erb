@@ -1,12 +1,26 @@
-<%# MODIFIED FILE: Injects Assigned Contact selection into issue edit/create form %>
+<% project_id = @project.try(:id)
+   contacts = if project_id
+     Contact.visible
+            .joins("INNER JOIN contacts_projects cp ON cp.contact_id = contacts.id")
+            .where("cp.project_id = ?", project_id)
+            .order(:last_name, :first_name)
+   else
+     Contact.visible.order(:last_name, :first_name)
+   end
+   selected_contact_id = @issue.try(:contacts).try(:first).try(:id)
+   if !selected_contact_id
+     if (cf = IssueCustomField.find_by(name: 'Assigned Contact'))
+       val = @issue.try(:custom_field_value, cf)
+       selected_contact_id = val.to_i if val.present?
+     end
+   end %>
 <div class="splitcontent">
   <div class="splitcontentright">
     <p>
       <%= label_tag :assigned_contact_id, l(:field_assigned_to) %>
       <%= select_tag 'assigned_contact_id',
-            options_from_collection_for_select(Contact.visible.order(:last_name, :first_name), 'id', 'name', @issue.contacts.try(:first).try(:id)),
+            options_from_collection_for_select(contacts, 'id', 'name', selected_contact_id),
             include_blank: true %>
     </p>
   </div>
-  <%= javascript_tag "console.log('Assigned Contact form rendered');" %>
 </div>
