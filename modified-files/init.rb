@@ -191,7 +191,13 @@ begin
         visible: true,
         description: 'ID des zugewiesenen CRM-Kontakts'
       )
+      cf.trackers = Tracker.all if defined?(Tracker)
       cf.save
+    else
+      if cf.trackers.blank? && defined?(Tracker)
+        cf.trackers = Tracker.all
+        cf.save
+      end
     end
   end
 rescue => e
