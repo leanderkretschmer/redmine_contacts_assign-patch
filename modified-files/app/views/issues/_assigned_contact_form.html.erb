@@ -24,3 +24,16 @@
     </p>
   </div>
 </div>
+<%= javascript_tag do %>
+  (function(){
+    var ac = document.getElementById('assigned_contact_id');
+    var assignee = document.getElementById('issue_assigned_to_id');
+    if (!ac || !assignee) return;
+    var apply = function(){
+      var has = !!(ac.value && ac.value.trim().length);
+      assignee.disabled = has;
+    };
+    ac.addEventListener('change', apply);
+    apply();
+  })();
+<% end %>
