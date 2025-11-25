@@ -55,10 +55,19 @@ module RedmineHelpdesk
             contact = Contact.find_by(id: assigned_id)
             if contact && contact.projects.where(id: @project.id).exists?
               @issue.contacts << contact unless @issue.contacts.include?(contact)
+              if (cf = IssueCustomField.find_by(name: 'Assigned Contact'))
+                @issue.custom_field_values = (@issue.custom_field_values || {})
+                @issue.custom_field_values[cf.id] = contact.id.to_s
+              end
               @issue.save!
             end
           else
             @issue.contacts.clear if @issue.contacts.any?
+            if (cf = IssueCustomField.find_by(name: 'Assigned Contact'))
+              @issue.custom_field_values = (@issue.custom_field_values || {})
+              @issue.custom_field_values[cf.id] = ''
+              @issue.save!
+            end
           end
           if params[:helpdesk] && params[:helpdesk][:is_send_mail].to_i > 0 && User.current.allowed_to?(:send_response, @project) && @issue.customer
             HelpdeskTicket.send_reply_by_issue(@issue, params)
@@ -83,6 +92,10 @@ module RedmineHelpdesk
             contact = Contact.find_by(id: assigned_id)
             if contact && contact.projects.where(id: @project.id).exists?
               @issue.contacts << contact unless @issue.contacts.include?(contact)
+              if (cf = IssueCustomField.find_by(name: 'Assigned Contact'))
+                @issue.custom_field_values = (@issue.custom_field_values || {})
+                @issue.custom_field_values[cf.id] = contact.id.to_s
+              end
             end
           end
         end

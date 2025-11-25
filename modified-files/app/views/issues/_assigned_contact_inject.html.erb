@@ -9,7 +9,13 @@
    else
      Contact.visible.order(:last_name, :first_name).pluck(:id, :first_name, :last_name, :company)
    end
-   selected_contact_id = @issue.try(:contacts).try(:first).try(:id) %>
+   selected_contact_id = @issue.try(:contacts).try(:first).try(:id)
+   if !selected_contact_id
+     if (cf = IssueCustomField.find_by(name: 'Assigned Contact'))
+       val = @issue.try(:custom_field_value, cf)
+       selected_contact_id = val.to_i if val.present?
+     end
+   end %>
 <%= hidden_field_tag :assigned_is_contact, '0' %>
 <%= hidden_field_tag :assigned_contact_id, '' %>
 <script>

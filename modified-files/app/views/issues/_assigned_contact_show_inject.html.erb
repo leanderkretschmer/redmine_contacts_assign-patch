@@ -1,4 +1,10 @@
-<% assigned_contact = @issue.contacts.try(:first) %>
+<% assigned_contact = @issue.contacts.try(:first)
+   if !assigned_contact
+     if (cf = IssueCustomField.find_by(name: 'Assigned Contact'))
+       val = @issue.try(:custom_field_value, cf)
+       assigned_contact = Contact.find_by(id: val.to_i) if val.present?
+     end
+   end %>
 <% if assigned_contact %>
 <script>
   (function() {
