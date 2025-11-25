@@ -54,6 +54,7 @@ module RedmineHelpdesk
             contact = Contact.visible.find_by_id(params[:assigned_contact_id])
             if contact
               @issue.contacts << contact unless @issue.contacts.include?(contact)
+              @issue.save!
             end
           end
           if params[:helpdesk] && params[:helpdesk][:is_send_mail].to_i > 0 && User.current.allowed_to?(:send_response, @project) && @issue.customer

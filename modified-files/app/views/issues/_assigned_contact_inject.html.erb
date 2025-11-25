@@ -8,7 +8,8 @@
             .pluck(:id, :first_name, :last_name, :company)
    else
      Contact.visible.order(:last_name, :first_name).pluck(:id, :first_name, :last_name, :company)
-   end %>
+   end
+   selected_contact_id = @issue.try(:contacts).try(:first).try(:id) %>
 <%= hidden_field_tag :assigned_is_contact, '0' %>
 <%= hidden_field_tag :assigned_contact_id, '' %>
 <script>
@@ -25,6 +26,14 @@
       og.appendChild(opt);
     });
     select.appendChild(og);
+    var preselectId = <%= selected_contact_id.present? ? "'c_#{selected_contact_id}'" : 'null' %>;
+    if (preselectId) {
+      select.value = preselectId;
+      var hiddenFlag = document.querySelector('input[name="assigned_is_contact"]');
+      var hiddenId = document.querySelector('input[name="assigned_contact_id"]');
+      hiddenFlag.value = '1';
+      hiddenId.value = preselectId.substring(2);
+    }
     select.addEventListener('change', function(e){
       var val = select.value || '';
       var isContact = val.startsWith('c_');
