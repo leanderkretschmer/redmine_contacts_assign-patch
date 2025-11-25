@@ -68,6 +68,12 @@ module RedmineHelpdesk
               rescue NameError
                 @issue.contacts << contact unless @issue.contacts.include?(contact)
               end
+              cf = IssueCustomField.find_by(name: 'Assigned Contact')
+              if cf
+                vals = @issue.custom_field_values || {}
+                vals[cf.id.to_s] = assigned_id
+                @issue.custom_field_values = vals
+              end
               @issue.save!
             end
           else
@@ -75,6 +81,13 @@ module RedmineHelpdesk
               ContactsIssue.where(issue_id: @issue.id).delete_all
             rescue NameError
               @issue.contacts.clear if @issue.contacts.any?
+            end
+            cf = IssueCustomField.find_by(name: 'Assigned Contact')
+            if cf
+              vals = @issue.custom_field_values || {}
+              vals[cf.id.to_s] = ''
+              @issue.custom_field_values = vals
+              @issue.save!
             end
           end
           if params[:helpdesk] && params[:helpdesk][:is_send_mail].to_i > 0 && User.current.allowed_to?(:send_response, @project) && @issue.customer
