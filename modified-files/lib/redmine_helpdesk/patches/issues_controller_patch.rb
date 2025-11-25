@@ -50,12 +50,15 @@ module RedmineHelpdesk
         def update_issue_from_params_with_helpdesk
           is_updated = update_issue_from_params_without_helpdesk
           return false unless is_updated
-          if params[:assigned_contact_id].present?
-            contact = Contact.visible.find_by_id(params[:assigned_contact_id])
-            if contact
+          assigned_id = params[:assigned_contact_id].presence
+          if assigned_id
+            contact = Contact.find_by(id: assigned_id)
+            if contact && contact.projects.where(id: @project.id).exists?
               @issue.contacts << contact unless @issue.contacts.include?(contact)
               @issue.save!
             end
+          else
+            @issue.contacts.clear if @issue.contacts.any?
           end
           if params[:helpdesk] && params[:helpdesk][:is_send_mail].to_i > 0 && User.current.allowed_to?(:send_response, @project) && @issue.customer
             HelpdeskTicket.send_reply_by_issue(@issue, params)
@@ -75,9 +78,10 @@ module RedmineHelpdesk
           end
           @issue.helpdesk_ticket.source = params[:source] if params[:source]
 
-          if params[:assigned_contact_id].present?
-            contact = Contact.visible.find_by_id(params[:assigned_contact_id])
-            if contact
+          assigned_id = params[:assigned_contact_id].presence
+          if assigned_id
+            contact = Contact.find_by(id: assigned_id)
+            if contact && contact.projects.where(id: @project.id).exists?
               @issue.contacts << contact unless @issue.contacts.include?(contact)
             end
           end
