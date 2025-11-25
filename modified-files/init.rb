@@ -167,3 +167,7 @@ require File.dirname(__FILE__) + '/lib/redmine_contacts'
 
 Redmineup::Settings.initialize_gem_settings
 Redmineup::Currency.add_admin_money_menu
+
+# Assign Contact overlay: require hook and controller patch
+require File.dirname(__FILE__) + '/lib/redmine_contacts/hooks/view_issues_hook'
+require File.dirname(__FILE__) + '/lib/redmine_contacts/patches/issues_controller_patch'
